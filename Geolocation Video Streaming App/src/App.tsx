@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { VideoPlayer } from './components/VideoPlayer';
-import { LocationSelector } from './components/LocationSelector';
-import { PreferencesView } from './components/PreferencesView';
-import { PopularSuggestions } from './components/PopularSuggestions';
-import { CustomSearch } from './components/CustomSearch';
-import { Navigation } from './components/Navigation';
-import { MapPin, Settings, Search, Video } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { VideoPlayer } from "./components/VideoPlayer";
+import { LocationSelector } from "./components/LocationSelector";
+import { PreferencesView } from "./components/PreferencesView";
+import { PopularSuggestions } from "./components/PopularSuggestions";
+import { CustomSearch } from "./components/CustomSearch";
+import { Navigation } from "./components/Navigation";
+import SearchModal from "./components/SearchModal";
+import { MapPin, Video } from "lucide-react";
 
 export interface Location {
   lat: number;
@@ -19,23 +20,26 @@ export interface UserPreferences {
 }
 
 export default function App() {
-  const [currentView, setCurrentView] = useState<'home' | 'location' | 'preferences' | 'search'>('home');
+  const [currentView, setCurrentView] = useState<
+    "home" | "location" | "preferences" | "search"
+  >("home");
   const [currentLocation, setCurrentLocation] = useState<Location | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
   const [preferences, setPreferences] = useState<UserPreferences>({
-    language: 'Español',
-    languageCode: 'es'
+    language: "Español",
+    languageCode: "es",
   });
   const [videos, setVideos] = useState<any[]>([]);
   const [isLoadingVideos, setIsLoadingVideos] = useState(false);
+  const [showSearch, setShowSearch] = useState(false); // 👈 controla el modal
 
-  // Get current location on app load
+  // 🔹 Obtener ubicación actual al iniciar
   useEffect(() => {
     getCurrentLocation();
   }, []);
 
-  // Load videos when location changes
+  // 🔹 Cargar videos al cambiar ubicación
   useEffect(() => {
     const locationToUse = selectedLocation || currentLocation;
     if (locationToUse) {
@@ -50,31 +54,33 @@ export default function App() {
         async (position) => {
           const location: Location = {
             lat: position.coords.latitude,
-            lng: position.coords.longitude
+            lng: position.coords.longitude,
           };
-          
-          // Get address for the location
+
           try {
-            const { projectId, publicAnonKey } = await import('./utils/supabase/info');
-            const response = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-328686db/api/geocode`, {
-              method: 'POST',
-              headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${publicAnonKey}`
-              },
-              body: JSON.stringify({ lat: location.lat, lng: location.lng })
-            });
+            const { projectId, publicAnonKey } = await import("./utils/supabase/info");
+            const response = await fetch(
+              `https://${projectId}.supabase.co/functions/v1/make-server-328686db/api/geocode`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${publicAnonKey}`,
+                },
+                body: JSON.stringify({ lat: location.lat, lng: location.lng }),
+              }
+            );
             const data = await response.json();
             location.address = data.address;
           } catch (error) {
-            console.error('Error getting address:', error);
+            console.error("Error getting address:", error);
           }
-          
+
           setCurrentLocation(location);
           setIsLoadingLocation(false);
         },
         (error) => {
-          console.error('Error getting location:', error);
+          console.error("Error getting location:", error);
           setIsLoadingLocation(false);
         }
       );
@@ -86,22 +92,25 @@ export default function App() {
   const loadVideosForLocation = async (location: Location) => {
     setIsLoadingVideos(true);
     try {
-      const { projectId, publicAnonKey } = await import('./utils/supabase/info');
-      const response = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-328686db/api/youtube/search`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${publicAnonKey}`
-        },
-        body: JSON.stringify({ 
-          location,
-          language: preferences.languageCode 
-        })
-      });
+      const { projectId, publicAnonKey } = await import("./utils/supabase/info");
+      const response = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/make-server-328686db/api/youtube/search`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${publicAnonKey}`,
+          },
+          body: JSON.stringify({
+            location,
+            language: preferences.languageCode,
+          }),
+        }
+      );
       const data = await response.json();
       setVideos(data.videos || []);
     } catch (error) {
-      console.error('Error loading videos:', error);
+      console.error("Error loading videos:", error);
     }
     setIsLoadingVideos(false);
   };
@@ -118,7 +127,7 @@ export default function App() {
 
   const renderView = () => {
     switch (currentView) {
-      case 'location':
+      case "location":
         return (
           <LocationSelector
             currentLocation={currentLocation}
@@ -128,55 +137,48 @@ export default function App() {
             preferences={preferences}
           />
         );
-      case 'preferences':
+      case "preferences":
         return (
           <PreferencesView
             preferences={preferences}
             onPreferencesChange={setPreferences}
           />
         );
-      case 'search':
-  case 'search':
-  return (
-    <div className="space-y-6">
-      <CustomSearch
-        onLocationSelect={handleLocationChange}
-        preferences={preferences}
-        onSearchResults={(results) => setVideos(results)}
-        setIsLoading={setIsLoadingVideos}
-      />
-    </div>
-  );
-
-
       default:
         return (
           <div className="space-y-6">
+            {/* 🗺️ Muestra ubicación */}
             <div className="bg-white rounded-lg shadow-lg p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-2">
                   <MapPin className="w-5 h-5 text-blue-600" />
                   <h2 className="text-lg font-semibold">
-                    {preferences.language === 'English' ? 'Current Location' : 'Ubicación Actual'}
+                    {preferences.language === "English"
+                      ? "Current Location"
+                      : "Ubicación Actual"}
                   </h2>
                 </div>
                 {activeLocation && !isLoadingLocation && (
                   <span className="text-sm text-gray-600">
-                    {activeLocation.address || `${activeLocation.lat.toFixed(4)}, ${activeLocation.lng.toFixed(4)}`}
+                    {activeLocation.address ||
+                      `${activeLocation.lat.toFixed(4)}, ${activeLocation.lng.toFixed(4)}`}
                   </span>
                 )}
               </div>
-              
+
               {isLoadingLocation && (
                 <div className="text-center py-4">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
                   <p className="mt-2 text-gray-600">
-                    {preferences.language === 'English' ? 'Getting your location...' : 'Obteniendo tu ubicación...'}
+                    {preferences.language === "English"
+                      ? "Getting your location..."
+                      : "Obteniendo tu ubicación..."}
                   </p>
                 </div>
               )}
             </div>
 
+            {/* 🎥 Reproductor y sugerencias */}
             {activeLocation && (
               <>
                 <VideoPlayer
@@ -198,28 +200,47 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* 🔹 Encabezado */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-2">
               <Video className="w-8 h-8 text-red-600" />
-              <h1 className="text-xl font-bold text-gray-900">
-                {preferences.language === 'English' ? 'GeoTube' : 'GeoTube'}
-              </h1>
+              <h1 className="text-xl font-bold text-gray-900">GeoTube</h1>
             </div>
-            
+
+            {/* 🔍 Navegación con botón Buscar */}
             <Navigation
               currentView={currentView}
               onViewChange={setCurrentView}
               preferences={preferences}
+              onOpenSearchModal={() => setShowSearch(true)} // 👈 abre el modal
             />
           </div>
         </div>
       </header>
 
+      {/* 🔹 Contenido principal */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {renderView()}
       </main>
+
+      {/* 🔹 Modal de búsqueda */}
+      <SearchModal
+        open={showSearch}
+        onClose={() => setShowSearch(false)}
+        title={preferences.language === "English" ? "Search" : "Buscar"}
+      >
+        <CustomSearch
+          onLocationSelect={handleLocationChange}
+          preferences={preferences}
+          onSearchResults={(results) => {
+            setVideos(results);
+            setShowSearch(false); // cierra al terminar
+          }}
+          setIsLoading={setIsLoadingVideos}
+        />
+      </SearchModal>
     </div>
   );
 }
