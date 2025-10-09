@@ -25,6 +25,7 @@ export function VideoPlayer({ videos, isLoading, preferences }: VideoPlayerProps
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   const isEnglish = preferences.language === 'English';
 
+  // 🌀 Estado de carga
   if (isLoading) {
     return (
       <div className="bg-white rounded-lg shadow-lg p-6">
@@ -49,12 +50,14 @@ export function VideoPlayer({ videos, isLoading, preferences }: VideoPlayerProps
     );
   }
 
+  // 🎬 Mostrar reproductor e información del video seleccionado
   return (
     <div className="bg-white rounded-lg shadow-lg p-6">
       <h2 className="text-lg font-semibold mb-4">
         {isEnglish ? 'Local Videos' : 'Videos Locales'}
       </h2>
-      
+
+      {/* 🖥️ Reproductor del video seleccionado */}
       {selectedVideo && (
         <div className="mb-6">
           <div className="aspect-w-16 aspect-h-9 bg-gray-900 rounded-lg overflow-hidden">
@@ -75,11 +78,14 @@ export function VideoPlayer({ videos, isLoading, preferences }: VideoPlayerProps
         </div>
       )}
 
+      {/* 🗂️ Lista de videos encontrados */}
       {videos.length === 0 ? (
         <div className="text-center py-8">
           <div className="text-gray-400 text-lg mb-2">🎥</div>
           <p className="text-gray-600">
-            {isEnglish ? 'No videos found for this location' : 'No se encontraron videos para esta ubicación'}
+            {isEnglish
+              ? 'No videos found for this location'
+              : 'No se encontraron videos para esta búsqueda o ubicación'}
           </p>
         </div>
       ) : (
@@ -88,7 +94,9 @@ export function VideoPlayer({ videos, isLoading, preferences }: VideoPlayerProps
             <div
               key={video.id}
               className={`flex space-x-4 p-3 rounded-lg cursor-pointer transition-colors ${
-                selectedVideo?.id === video.id ? 'bg-blue-50 border border-blue-200' : 'hover:bg-gray-50'
+                selectedVideo?.id === video.id
+                  ? 'bg-blue-50 border border-blue-200'
+                  : 'hover:bg-gray-50'
               }`}
               onClick={() => setSelectedVideo(video)}
             >
@@ -102,7 +110,7 @@ export function VideoPlayer({ videos, isLoading, preferences }: VideoPlayerProps
                   <Play className="w-6 h-6 text-white" />
                 </div>
               </div>
-              
+
               <div className="flex-1 min-w-0">
                 <h3 className="font-medium text-gray-900 line-clamp-2 mb-1">
                   {video.title}

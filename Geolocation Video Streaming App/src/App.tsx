@@ -136,12 +136,19 @@ export default function App() {
           />
         );
       case 'search':
-        return (
-          <CustomSearch
-            onLocationSelect={handleLocationChange}
-            preferences={preferences}
-          />
-        );
+  case 'search':
+  return (
+    <div className="space-y-6">
+      <CustomSearch
+        onLocationSelect={handleLocationChange}
+        preferences={preferences}
+        onSearchResults={(results) => setVideos(results)}
+        setIsLoading={setIsLoadingVideos}
+      />
+    </div>
+  );
+
+
       default:
         return (
           <div className="space-y-6">
