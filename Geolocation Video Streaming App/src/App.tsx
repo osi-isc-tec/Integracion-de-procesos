@@ -5,7 +5,8 @@ import { PreferencesView } from './components/PreferencesView';
 import { PopularSuggestions } from './components/PopularSuggestions';
 import { CustomSearch } from './components/CustomSearch';
 import { Navigation } from './components/Navigation';
-import { MapPin, Settings, Search, Video } from 'lucide-react';
+import { MapPin, Video } from 'lucide-react';
+import { useTranslations } from './hooks/useTranslations';
 
 export interface Location {
   lat: number;
@@ -30,18 +31,22 @@ export default function App() {
   const [videos, setVideos] = useState<any[]>([]);
   const [isLoadingVideos, setIsLoadingVideos] = useState(false);
 
-  // Get current location on app load
+  const t = useTranslations(preferences.languageCode);
+
   useEffect(() => {
+    const savedPrefs = localStorage.getItem('geoTubePreferences');
+    if (savedPrefs) {
+      setPreferences(JSON.parse(savedPrefs));
+    }
     getCurrentLocation();
   }, []);
 
-  // Load videos when location changes
   useEffect(() => {
     const locationToUse = selectedLocation || currentLocation;
     if (locationToUse) {
       loadVideosForLocation(locationToUse);
     }
-  }, [currentLocation, selectedLocation]);
+  }, [currentLocation, selectedLocation, preferences.languageCode]);
 
   const getCurrentLocation = () => {
     setIsLoadingLocation(true);
@@ -53,7 +58,6 @@ export default function App() {
             lng: position.coords.longitude
           };
           
-          // Get address for the location
           try {
             const { projectId, publicAnonKey } = await import('./utils/supabase/info');
             const response = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-328686db/api/geocode`, {
@@ -150,7 +154,7 @@ export default function App() {
                 <div className="flex items-center space-x-2">
                   <MapPin className="w-5 h-5 text-blue-600" />
                   <h2 className="text-lg font-semibold">
-                    {preferences.language === 'English' ? 'Current Location' : 'Ubicación Actual'}
+                    {t('app_current_location')}
                   </h2>
                 </div>
                 {activeLocation && !isLoadingLocation && (
@@ -164,7 +168,7 @@ export default function App() {
                 <div className="text-center py-4">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
                   <p className="mt-2 text-gray-600">
-                    {preferences.language === 'English' ? 'Getting your location...' : 'Obteniendo tu ubicación...'}
+                    {t('app_getting_location')}
                   </p>
                 </div>
               )}
@@ -197,7 +201,7 @@ export default function App() {
             <div className="flex items-center space-x-2">
               <Video className="w-8 h-8 text-red-600" />
               <h1 className="text-xl font-bold text-gray-900">
-                {preferences.language === 'English' ? 'GeoTube' : 'GeoTube'}
+                {t('app_title')}
               </h1>
             </div>
             

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Home, MapPin, Settings, Search } from 'lucide-react';
 import { UserPreferences } from '../App';
+import { useTranslations } from '../hooks/useTranslations';
 
 interface NavigationProps {
   currentView: 'home' | 'location' | 'preferences' | 'search';
@@ -9,29 +10,13 @@ interface NavigationProps {
 }
 
 export function Navigation({ currentView, onViewChange, preferences }: NavigationProps) {
-  const isEnglish = preferences.language === 'English';
+  const t = useTranslations(preferences.languageCode);
   
   const navItems = [
-    {
-      id: 'home' as const,
-      icon: Home,
-      label: isEnglish ? 'Home' : 'Inicio'
-    },
-    {
-      id: 'location' as const,
-      icon: MapPin,
-      label: isEnglish ? 'Location' : 'Ubicación'
-    },
-    {
-      id: 'search' as const,
-      icon: Search,
-      label: isEnglish ? 'Search' : 'Buscar'
-    },
-    {
-      id: 'preferences' as const,
-      icon: Settings,
-      label: isEnglish ? 'Preferences' : 'Preferencias'
-    }
+    { id: 'home' as const, icon: Home, label: t('nav_home') },
+    { id: 'location' as const, icon: MapPin, label: t('nav_location') },
+    { id: 'search' as const, icon: Search, label: t('nav_search') },
+    { id: 'preferences' as const, icon: Settings, label: t('nav_preferences') }
   ];
 
   return (

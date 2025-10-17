@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Play, ExternalLink } from 'lucide-react';
 import { UserPreferences } from '../App';
+import { useTranslations } from '../hooks/useTranslations';
 
 interface Video {
   id: string;
@@ -23,13 +24,13 @@ interface VideoPlayerProps {
 
 export function VideoPlayer({ videos, isLoading, preferences }: VideoPlayerProps) {
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
-  const isEnglish = preferences.language === 'English';
+  const t = useTranslations(preferences.languageCode);
 
   if (isLoading) {
     return (
       <div className="bg-white rounded-lg shadow-lg p-6">
         <h2 className="text-lg font-semibold mb-4">
-          {isEnglish ? 'Loading Videos...' : 'Cargando Videos...'}
+          {t('video_loading')}
         </h2>
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
@@ -52,7 +53,7 @@ export function VideoPlayer({ videos, isLoading, preferences }: VideoPlayerProps
   return (
     <div className="bg-white rounded-lg shadow-lg p-6">
       <h2 className="text-lg font-semibold mb-4">
-        {isEnglish ? 'Local Videos' : 'Videos Locales'}
+        {t('video_local_videos')}
       </h2>
       
       {selectedVideo && (
@@ -79,7 +80,7 @@ export function VideoPlayer({ videos, isLoading, preferences }: VideoPlayerProps
         <div className="text-center py-8">
           <div className="text-gray-400 text-lg mb-2">🎥</div>
           <p className="text-gray-600">
-            {isEnglish ? 'No videos found for this location' : 'No se encontraron videos para esta ubicación'}
+            {t('video_no_videos_found')}
           </p>
         </div>
       ) : (
@@ -119,7 +120,7 @@ export function VideoPlayer({ videos, isLoading, preferences }: VideoPlayerProps
                   window.open(`https://www.youtube.com/watch?v=${video.id}`, '_blank');
                 }}
                 className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
-                title={isEnglish ? 'Open in YouTube' : 'Abrir en YouTube'}
+                title={t('video_open_in_youtube')}
               >
                 <ExternalLink className="w-4 h-4" />
               </button>
